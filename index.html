@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Tasks with Local Storage</title>
+    <link rel="stylesheet" href="styles.css">
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            /* ---------- LOAD STORED TASKS ---------- */
+
+            let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+
+            function saveTasks() {
+                localStorage.setItem('tasks', JSON.stringify(tasks));
+            }
+
+            function renderTasks() {
+                const taskList = document.querySelector('#tasks');
+                taskList.innerHTML = '';
+
+                tasks.forEach((task, index) => {
+                    const li = document.createElement('li');
+                    li.className = task.done ? 'done' : '';
+                    li.textContent = task.text;
+
+                    // Toggle done on click
+                    li.onclick = () => {
+                        tasks[index].done = !tasks[index].done;
+                        saveTasks();
+                        renderTasks();
+                    };
+
+                    // Delete button
+                    const del = document.createElement('span');
+                    del.textContent = '✕';
+                    del.className = 'delete';
+                    del.onclick = (e) => {
+                        e.stopPropagation();
+                        tasks.splice(index, 1);
+                        saveTasks();
+                        renderTasks();
+                    };
+
+                    li.appendChild(del);
+                    taskList.appendChild(li);
+                });
+            }
+
+            renderTasks();
+
+
+            /* ---------- INPUT & SUBMIT ---------- */
+
+            const input = document.querySelector('#task');
+            const submit = document.querySelector('#submit');
+
+            submit.disabled = true;
+
+            input.onkeyup = () => {
+                const val = input.value.trim();
+                submit.disabled = val.length === 0;
+            };
+
+            document.querySelector('form').onsubmit = () => {
+                const text = input.value.trim();
+
+                tasks.push({ text: text, done: false });
+                saveTasks();
+                renderTasks();
+
+                input.value = '';
+                submit.disabled = true;
+
+                return false;
+            };
+
+
+            /* ---------- CLEAR ALL BUTTON ---------- */
+
+            document.querySelector('#clearAll').onclick = () => {
+                tasks = [];
+                saveTasks();
+                renderTasks();
+            };
+
+        });
+    </script>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Tasks</h1>
+
+        <ul id="tasks"></ul>
+
+        <form>
+            <input id="task" autocomplete="off" placeholder="New Task" type="text">
+            <input id="submit" type="submit" value="Add Task">
+        </form>
+
+        <button id="clearAll" class="danger">Vymazat vše</button>
+    </div>
+</body>
+</html>
