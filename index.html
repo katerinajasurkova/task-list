@@ -1,61 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 <head>
-    <meta charset="UTF-8">
-    <title>Tasks with Local Storage</title>
-    <link rel="stylesheet" href="styles.css">
-
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Úkoly s ukládáním</title>
+    <link rel="stylesheet" href="styles.css" />
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
-            /* ---------- LOAD STORED TASKS ---------- */
-
+            // Načti uložené úkoly nebo prázdné pole
             let tasks = JSON.parse(localStorage.getItem('tasks')) || [];
 
+            // Ulož úkoly do localStorage
             function saveTasks() {
                 localStorage.setItem('tasks', JSON.stringify(tasks));
             }
 
+            // Vykresli úkoly
             function renderTasks() {
                 const taskList = document.querySelector('#tasks');
                 taskList.innerHTML = '';
 
                 tasks.forEach((task, index) => {
                     const li = document.createElement('li');
-                    li.className = task.done ? 'done' : '';
-                    li.textContent = task.text;
+                    li.className = 'task-item';
 
-                    // Toggle done on click
-                    li.onclick = () => {
+                    // Tlačítko "splněno" vlevo
+                    const doneBtn = document.createElement('button');
+                    doneBtn.textContent = '✔';
+                    doneBtn.className = 'done-btn';
+                    doneBtn.onclick = () => {
                         tasks[index].done = !tasks[index].done;
                         saveTasks();
                         renderTasks();
                     };
 
-                    // Delete button
-                    const del = document.createElement('span');
-                    del.textContent = '✕';
-                    del.className = 'delete';
-                    del.onclick = (e) => {
-                        e.stopPropagation();
+                    // Text úkolu v bublině
+                    const bubble = document.createElement('div');
+                    bubble.className = 'task-bubble';
+                    bubble.textContent = task.text;
+                    if (task.done) bubble.classList.add('done');
+
+                    // Tlačítko "smazat" vpravo
+                    const delBtn = document.createElement('button');
+                    delBtn.textContent = '✕';
+                    delBtn.className = 'delete-btn';
+                    delBtn.onclick = () => {
                         tasks.splice(index, 1);
                         saveTasks();
                         renderTasks();
                     };
 
-                    li.appendChild(del);
+                    li.appendChild(doneBtn);
+                    li.appendChild(bubble);
+                    li.appendChild(delBtn);
+
                     taskList.appendChild(li);
                 });
             }
 
+            // Inicializuj vykreslení
             renderTasks();
 
-
-            /* ---------- INPUT & SUBMIT ---------- */
-
+            // Prvky formuláře
             const input = document.querySelector('#task');
             const submit = document.querySelector('#submit');
 
+            // Zakázat tlačítko přidat pokud není text
             submit.disabled = true;
 
             input.onkeyup = () => {
@@ -63,8 +74,10 @@
                 submit.disabled = val.length === 0;
             };
 
+            // Ošetření odeslání formuláře
             document.querySelector('form').onsubmit = () => {
                 const text = input.value.trim();
+                if (!text) return false;
 
                 tasks.push({ text: text, done: false });
                 saveTasks();
@@ -73,33 +86,33 @@
                 input.value = '';
                 submit.disabled = true;
 
-                return false;
+                return false; // zabránit reloadu stránky
             };
 
-
-            /* ---------- CLEAR ALL BUTTON ---------- */
-
+            // Tlačítko vymazat vše
             document.querySelector('#clearAll').onclick = () => {
-                tasks = [];
-                saveTasks();
-                renderTasks();
+                if (tasks.length === 0) {
+                    alert('Žádné úkoly k vymazání.');
+                    return;
+                }
+                if (confirm('Opravdu vymazat všechny úkoly?')) {
+                    tasks = [];
+                    saveTasks();
+                    renderTasks();
+                }
             };
 
         });
     </script>
 </head>
-
 <body>
     <div class="container">
-        <h1>Tasks</h1>
-
+        <h1>TO DO list</h1>
         <ul id="tasks"></ul>
-
         <form>
-            <input id="task" autocomplete="off" placeholder="New Task" type="text">
-            <input id="submit" type="submit" value="Add Task">
+            <input id="task" type="text" autocomplete="off" placeholder="Nový úkol" autofocus />
+            <input id="submit" type="submit" value="Přidat" />
         </form>
-
         <button id="clearAll" class="danger">Vymazat vše</button>
     </div>
 </body>
